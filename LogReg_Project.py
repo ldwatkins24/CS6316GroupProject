@@ -127,8 +127,14 @@ trainY2 = trainingSet2['Col 10']
 clf1 = LogisticRegression(penalty = 'none') # no regularization
 clf1.fit(trainX1,trainY1)
 
-clf2 = LogisticRegression(penalty = 'l2') # no regularization
+clf2 = LogisticRegression(penalty = 'none') # no regularization
 clf2.fit(trainX2,trainY2)
+
+# clf1 = LogisticRegression(penalty = 'l2') # no regularization
+# clf1.fit(trainX1,trainY1)
+
+# clf2 = LogisticRegression(penalty = 'l2') # no regularization
+# clf2.fit(trainX2,trainY2)
 
 #%% Evaluate
 
