@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
 #%% Packages
 import pandas as pd
 import numpy as np
 import random
-import matplotlib.pyplot as plt
 from sklearn import svm
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_validate
+
 
 #%% Load Data
 # Note: Column header added to data for dataframe
@@ -128,4 +129,45 @@ clf1.fit(trainX1,trainY1)
 clf2 = svm.SVC(kernel='linear')
 clf2.fit(trainX2,trainY2)
 
-#%% Plot
+#%% Evaluate
+
+# Cross-Validation Split
+# cv = KFold(n_splits=10, random_state=1, shuffle=True)
+
+scoring = {'acc': 'accuracy',
+           'prec': 'precision',
+           'rec': 'recall',
+           'f1': 'f1',
+           'AUC': 'roc_auc'}
+
+#scores1 = evaluate_model(testX1, testY1, cv, clf1.fit(trainX1, trainY1))
+#scores2 = evaluate_model(testX2, testY2, cv, clf1.fit(trainX2, trainY2))
+
+scores1 = cross_validate(clf1.fit(trainX1, trainY1), testX1, testY1, scoring=scoring, cv=10, n_jobs=-1)
+scores2 = cross_validate(clf2.fit(trainX2, trainY2), testX2, testY2, scoring=scoring, cv=10, n_jobs=-1)
+
+acc1 = np.mean(scores1['test_acc'])
+prec1 = np.mean(scores1['test_prec'])
+rec1 = np.mean(scores1['test_rec'])
+AUCROC1 = np.mean(scores1['test_AUC'])
+f1_1 = np.mean(scores1['test_f1'])
+
+acc2 = np.mean(scores2['test_acc'])
+prec2 = np.mean(scores2['test_prec'])
+rec2 = np.mean(scores2['test_rec'])
+AUCROC2 = np.mean(scores2['test_AUC'])
+f1_2 = np.mean(scores2['test_f1'])
+
+print("\n")
+print("Accuracy Dataset1: %f" % (acc1))
+print("Precision Dataset1: %f" % (prec1))
+print("Recall Dataset1: %f" % (rec1))
+print("AUC-ROC Dataset1: %f" % (AUCROC1))
+print('F-1 Dataset1: %f' % (f1_1))
+
+print("\n")
+print("Accuracy Dataset2: %f" % (acc2))
+print("Precision Dataset2: %f" % (prec2))
+print("Recall Dataset2: %f" % (rec2))
+print("AUC-ROC Dataset2: %f" % (AUCROC2))
+print('F-1 Dataset2: %f' % (f1_2))
