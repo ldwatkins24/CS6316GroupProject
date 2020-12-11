@@ -172,7 +172,24 @@ def printScores(scores1,scores2):
     print("AUC-ROC Dataset2: %f" % (AUCROC2))
     print('F-1 Dataset2: %f' % (f1_2))
 
-
+def plotCurves(scores,ylow,yhigh,title, param, param_range, scoring, dataset):
+    plt.title("DS%d: Validation Curve with %s" % (dataset, title))
+    plt.xlabel(param)
+    plt.ylabel("%s Score" % scoring)
+    plt.ylim(ylow, yhigh)
+    lw = 2
+    plt.semilogx(param_range, scores[0], label="Training score",
+                color="darkorange", lw=lw)
+    plt.fill_between(param_range, scores[0]- scores[2],
+                    scores[0] + scores[2], alpha=0.2,
+                    color="darkorange", lw=lw)
+    plt.semilogx(param_range, scores[1], label="Cross-validation score",
+                color="navy", lw=lw)
+    plt.fill_between(param_range, scores[1] - scores[3],
+                    scores[1] + scores[3], alpha=0.2,
+                    color="navy", lw=lw)
+    plt.legend(loc="best")
+    plt.show()
 
 #%% Create Models
 
@@ -224,49 +241,89 @@ clf1_gb.fit(trainX1,trainY1)
 clf2_gb = GradientBoostingClassifier()
 clf2_gb.fit(trainX2,trainY2)
 
-#%% Create Validation Curves
+#%% Create and Plot Validation Curves
 
 #lr1_scores = createValidationCurves(clf1_lr,trainX1,trainY1,,,10,"accuracy")
 #lr2_scores = createValidationCurves(clf2_lr,trainX1,trainY1,,,10,"accuracy")
 #lr1_l2_scores = createValidationCurves(clf1_lrl2,trainX1,trainY1,,,10,"accuracy")
 #lr2_l2_scores = createValidationCurves(clf2_lrl2,trainX1,trainY1,,,10,"accuracy")
 
-knn1_scores = createValidationCurves(clf1_knn,trainX1,trainY1,"n_neighbors",np.arange(3,50,2),10,"accuracy")
-knn2_scores = createValidationCurves(clf2_knn,trainX2,trainY2,"n_neighbors",np.arange(3,50,2),10,"accuracy")
+#%% KNN Validation Curves
 
-svm1_scores = createValidationCurves(clf1_svm,trainX1,trainY1,"gamma",np.logspace(-6,-1,5),10,"accuracy")
-svm2_scores = createValidationCurves(clf2_svm,trainX2,trainY2,"gamma",np.logspace(-6,-1,5),10,"accuracy")
+param = "n_neighbors"
+param_range = np.arange(3,50,2)
+scoring = {"accuracy","precision","recall","f1","roc_auc"}
+for score_type in scoring:
+    score1 = createValidationCurves(clf1_knn,trainX1,trainY1,param,param_range,10,score_type)
+    score2 = createValidationCurves(clf2_knn,trainX2,trainY2,param,param_range,10,score_type)
+    plotCurves(score1,0.8,1.1,"KNN",param,param_range,score_type,1)
+    plotCurves(score2,0.0,1.1,"KNN",param,param_range,score_type,2)
 
-dt1_scores = createValidationCurves(clf1_dt,trainX1,trainY1,"max_depth",np.arange(1,11),10,"accuracy")
-dt2_scores = createValidationCurves(clf2_dt,trainX2,trainY2,"max_depth",np.arange(1,11),10,"accuracy")
+
+#%% SVM Validation Curves
+
+param = "gamma"
+param_range = np.logspace(-6,1,10)
+scoring = {"accuracy","precision","recall","f1","roc_auc"}
+for score_type in scoring:
+    score1 = createValidationCurves(clf1_svm,trainX1,trainY1,param,param_range,10,score_type)
+    score2 = createValidationCurves(clf2_svm,trainX2,trainY2,param,param_range,10,score_type)
+    plotCurves(score1,0.8,1.1,"SVM",param,param_range,score_type,1)
+    plotCurves(score2,0.0,1.1,"SVM",param,param_range,score_type,2)
+
+param = "C"
+param_range = np.logspace(-1,2,10)
+scoring = {"accuracy","precision","recall","f1","roc_auc"}
+for score_type in scoring:
+    score1 = createValidationCurves(clf1_svm,trainX1,trainY1,param,param_range,10,score_type)
+    score2 = createValidationCurves(clf2_svm,trainX2,trainY2,param,param_range,10,score_type)
+    plotCurves(score1,0.8,1.1,"SVM",param,param_range,score_type,1)
+    plotCurves(score2,0.0,1.1,"SVM",param,param_range,score_type,2)
+
+
+#%% Decision Tree Validation Curves
+
+param = "max_depth"
+param_range = np.arange(1,11)
+scoring = {"accuracy","precision","recall","f1","roc_auc"}
+for score_type in scoring:
+    score1 = createValidationCurves(clf1_dt,trainX1,trainY1,param,param_range,10,score_type)
+    score2 = createValidationCurves(clf2_dt,trainX2,trainY2,param,param_range,10,score_type)
+    plotCurves(score1,0.8,1.1,"Decision Tree",param,param_range,score_type,1)
+    plotCurves(score2,0.0,1.1,"Decision Tree",param,param_range,score_type,2)
+
+#%% Random Forest Curves
+
+param = "n_estimators"
 param_range = np.arange(1,50,2)
+scoring = {"accuracy","precision","recall","f1","roc_auc"}
+for score_type in scoring:
+    score1 = createValidationCurves(clf1_rf,trainX1,trainY1,param,param_range,10,score_type)
+    score2 = createValidationCurves(clf2_rf,trainX2,trainY2,param,param_range,10,score_type)
+    plotCurves(score1,0.8,1.1,"Random Forest",param,param_range,score_type,1)
+    plotCurves(score2,0.0,1.1,"Random Forest",param,param_range,score_type,2)
 
-rf1_scores = createValidationCurves(clf1_rf,trainX1,trainY1,"n_estimators",np.arange(1,50,2),10,"accuracy")
-rf2_scores = createValidationCurves(clf2_rf,trainX2,trainY2,"n_estimators",np.arange(1,50,2),10,"accuracy")
+param = "max_depth"
+param_range = np.arange(1,11)
+scoring = {"accuracy","precision","recall","f1","roc_auc"}
+for score_type in scoring:
+    score1 = createValidationCurves(clf1_rf,trainX1,trainY1,param,param_range,10,score_type)
+    score2 = createValidationCurves(clf2_rf,trainX2,trainY2,param,param_range,10,score_type)
+    plotCurves(score1,0.8,1.1,"Random Forest",param,param_range,score_type,1)
+    plotCurves(score2,0.0,1.1,"Random Forest",param,param_range,score_type,2)
 
-gb1_scores = createValidationCurves(clf1_gb,trainX1,trainY1,"n_estimators",np.arange(1,50,2),10,"accuracy")
-gb2_scores = createValidationCurves(clf2_gb,trainX2,trainY2,"n_estimators",np.arange(1,50,2),10,"accuracy")
 
-#%% Plot Curves
+#%% Gradient Boosting Validation Curves
 
-""" #Dataset 1
-plt.title("DS1: Validation Curve with Random Forest")
-plt.xlabel(r"Number Of Trees")
-plt.ylabel("Accuracy Score")
-plt.ylim(0.0, 1.1)
-lw = 2
-plt.semilogx(param_range, train_scores_mean1, label="Training score",
-             color="darkorange", lw=lw)
-plt.fill_between(param_range, train_scores_mean1 - train_scores_std1,
-                 train_scores_mean1 + train_scores_std1, alpha=0.2,
-                 color="darkorange", lw=lw)
-plt.semilogx(param_range, valid_scores_mean1, label="Cross-validation score",
-             color="navy", lw=lw)
-plt.fill_between(param_range, valid_scores_mean1 - valid_scores_std1,
-                 valid_scores_mean1 + valid_scores_std1, alpha=0.2,
-                 color="navy", lw=lw)
-plt.legend(loc="best")
-plt.show() """
+param = "n_estimators"
+param_range = np.arange(1,50,2)
+scoring = {"accuracy","precision","recall","f1","roc_auc"}
+for score_type in scoring:
+    score1 = createValidationCurves(clf1_gb,trainX1,trainY1,param,param_range,10,score_type)
+    score2 = createValidationCurves(clf2_gb,trainX2,trainY2,param,param_range,10,score_type)
+    plotCurves(score1,0.8,1.1,"Gradient Boosting",param,param_range,score_type,1)
+    plotCurves(score2,0.0,1.1,"Gradient Boosting",param,param_range,score_type,2)
+
 
 #%% Evaluate
 
